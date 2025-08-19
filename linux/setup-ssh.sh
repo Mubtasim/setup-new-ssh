@@ -82,44 +82,44 @@ backup_config() {
 
 # Function to select host interactively
 select_host() {
-    echo -e "\n${YELLOW}Select the SSH server:${NC}"
-    echo -e "1) GitHub (github.com)"
-    echo -e "2) GitLab (gitlab.com)"
-    echo -e "3) Bitbucket (bitbucket.org)"
-    echo -e "4) SourceForge (git.code.sf.net)"
-    echo -e "5) Gitea (gitea.com)"
-    echo -e "6) Gogs (gogs.io)"
-    echo -e "7) Other server (custom)"
-    
     while true; do
+        echo -e "\n${YELLOW}Select the SSH server:${NC}"
+        echo -e "1) GitHub (github.com)"
+        echo -e "2) GitLab (gitlab.com)"
+        echo -e "3) Bitbucket (bitbucket.org)"
+        echo -e "4) SourceForge (git.code.sf.net)"
+        echo -e "5) Gitea (gitea.com)"
+        echo -e "6) Gogs (gogs.io)"
+        echo -e "7) Other server (custom)"
+        
         read -p "Enter choice (1-7): " choice
         case $choice in
             1)
-                echo "github.com:git"
+                SELECTED_HOST="github.com:git"
                 break
                 ;;
             2)
-                echo "gitlab.com:git"
+                SELECTED_HOST="gitlab.com:git"
                 break
                 ;;
             3)
-                echo "bitbucket.org:git"
+                SELECTED_HOST="bitbucket.org:git"
                 break
                 ;;
             4)
-                echo "git.code.sf.net:git"
+                SELECTED_HOST="git.code.sf.net:git"
                 break
                 ;;
             5)
-                echo "gitea.com:git"
+                SELECTED_HOST="gitea.com:git"
                 break
                 ;;
             6)
-                echo "gogs.io:git"
+                SELECTED_HOST="gogs.io:git"
                 break
                 ;;
             7)
-                echo "custom"
+                SELECTED_HOST="custom"
                 break
                 ;;
             *)
@@ -147,24 +147,24 @@ get_custom_server() {
     read -p "Enter SSH user (default: git): " user
     user=${user:-git}
     
-    echo "$hostname:$user"
+    SELECTED_HOST="$hostname:$user"
 }
 
 # Function to select key type
 select_key_type() {
-    echo -e "\n${YELLOW}Select SSH key type:${NC}"
-    echo -e "1) RSA 4096-bit (works almost everywhere)"
-    echo -e "2) Ed25519 (modern, faster, smaller)"
-    
     while true; do
+        echo -e "\n${YELLOW}Select SSH key type:${NC}"
+        echo -e "1) RSA 4096-bit (works almost everywhere)"
+        echo -e "2) Ed25519 (modern, faster, smaller)"
+        
         read -p "Enter choice (1-2): " choice
         case $choice in
             1)
-                echo "rsa:4096"
+                SELECTED_KEY_TYPE="rsa:4096"
                 break
                 ;;
             2)
-                echo "ed25519"
+                SELECTED_KEY_TYPE="ed25519"
                 break
                 ;;
             *)
@@ -333,10 +333,10 @@ main() {
     
     # Select key type
     print_status "Selecting SSH key type..."
-    key_selection=$(select_key_type)
+    select_key_type
     
     # Parse key selection
-    if [[ "$key_selection" == "rsa:4096" ]]; then
+    if [[ "$SELECTED_KEY_TYPE" == "rsa:4096" ]]; then
         key_type="rsa"
         key_bits="4096"
         key_file="$HOME/.ssh/id_rsa_$account_name"
@@ -362,18 +362,19 @@ main() {
     
     # Select host interactively
     print_status "Selecting SSH server..."
-    host_selection=$(select_host)
+    select_host
     
     # Parse host selection
-    if [[ "$host_selection" == "custom" ]]; then
+    if [[ "$SELECTED_HOST" == "custom" ]]; then
         # Get custom server details
-        server_details=$(get_custom_server)
+        get_custom_server
+        server_details="$SELECTED_HOST"
         hostname=$(echo "$server_details" | cut -d: -f1)
         user=$(echo "$server_details" | cut -d: -f2)
     else
         # Parse predefined server details
-        hostname=$(echo "$host_selection" | cut -d: -f1)
-        user=$(echo "$host_selection" | cut -d: -f2)
+        hostname=$(echo "$SELECTED_HOST" | cut -d: -f1)
+        user=$(echo "$SELECTED_HOST" | cut -d: -f2)
     fi
     
     print_status "Selected: $hostname (user: $user)"

@@ -73,26 +73,26 @@ function Backup-SshConfig {
 
 # Function to select host interactively
 function Select-Host {
-    Write-Host ""
-    Write-Host "Select the SSH server:" -ForegroundColor Yellow
-    Write-Host "1) GitHub (github.com)"
-    Write-Host "2) GitLab (gitlab.com)"
-    Write-Host "3) Bitbucket (bitbucket.org)"
-    Write-Host "4) SourceForge (git.code.sf.net)"
-    Write-Host "5) Gitea (gitea.com)"
-    Write-Host "6) Gogs (gogs.io)"
-    Write-Host "7) Other server (custom)"
-    
     do {
+        Write-Host ""
+        Write-Host "Select the SSH server:" -ForegroundColor Yellow
+        Write-Host "1) GitHub (github.com)"
+        Write-Host "2) GitLab (gitlab.com)"
+        Write-Host "3) Bitbucket (bitbucket.org)"
+        Write-Host "4) SourceForge (git.code.sf.net)"
+        Write-Host "5) Gitea (gitea.com)"
+        Write-Host "6) Gogs (gogs.io)"
+        Write-Host "7) Other server (custom)"
+        
         $choice = Read-Host "Enter choice (1-7)"
         switch ($choice) {
-            "1" { return "github.com:git" }
-            "2" { return "gitlab.com:git" }
-            "3" { return "bitbucket.org:git" }
-            "4" { return "git.code.sf.net:git" }
-            "5" { return "gitea.com:git" }
-            "6" { return "gogs.io:git" }
-            "7" { return "custom" }
+            "1" { $script:SELECTED_HOST = "github.com:git"; break }
+            "2" { $script:SELECTED_HOST = "gitlab.com:git"; break }
+            "3" { $script:SELECTED_HOST = "bitbucket.org:git"; break }
+            "4" { $script:SELECTED_HOST = "git.code.sf.net:git"; break }
+            "5" { $script:SELECTED_HOST = "gitea.com:git"; break }
+            "6" { $script:SELECTED_HOST = "gogs.io:git"; break }
+            "7" { $script:SELECTED_HOST = "custom"; break }
             default { Write-Host "Invalid choice. Please enter 1-7." -ForegroundColor Red }
         }
     } while ($choice -notmatch '^[1-7]$')
@@ -117,21 +117,21 @@ function Get-CustomServer {
         $user = "git"
     }
     
-    return "$hostname`:$user"
+    $script:SELECTED_HOST = "$hostname`:$user"
 }
 
 # Function to select key type
 function Select-KeyType {
-    Write-Host ""
-    Write-Host "Select SSH key type:" -ForegroundColor Yellow
-    Write-Host "1) RSA 4096-bit (works almost everywhere)"
-    Write-Host "2) Ed25519 (modern, faster, smaller)"
-    
     do {
+        Write-Host ""
+        Write-Host "Select SSH key type:" -ForegroundColor Yellow
+        Write-Host "1) RSA 4096-bit (works almost everywhere)"
+        Write-Host "2) Ed25519 (modern, faster, smaller)"
+        
         $choice = Read-Host "Enter choice (1-2)"
         switch ($choice) {
-            "1" { return "rsa:4096" }
-            "2" { return "ed25519" }
+            "1" { $script:SELECTED_KEY_TYPE = "rsa:4096"; break }
+            "2" { $script:SELECTED_KEY_TYPE = "ed25519"; break }
             default { Write-Host "Invalid choice. Please enter 1 or 2." -ForegroundColor Red }
         }
     } while ($choice -notmatch '^[1-2]$')
@@ -314,10 +314,10 @@ function Main {
     
     # Select key type
     Write-Status "Selecting SSH key type..."
-    $keySelection = Select-KeyType
+    Select-KeyType
     
     # Parse key selection
-    if ($keySelection -eq "rsa:4096") {
+    if ($SELECTED_KEY_TYPE -eq "rsa:4096") {
         $keyType = "rsa"
         $keyBits = "4096"
         $keyFile = "$env:USERPROFILE\.ssh\id_rsa_$accountName"
@@ -348,19 +348,19 @@ function Main {
     
     # Select host interactively
     Write-Status "Selecting SSH server..."
-    $hostSelection = Select-Host
+    Select-Host
     
     # Parse host selection
-    if ($hostSelection -eq "custom") {
+    if ($SELECTED_HOST -eq "custom") {
         # Get custom server details
-        $serverDetails = Get-CustomServer
-        $hostname = $serverDetails.Split(':')[0]
-        $user = $serverDetails.Split(':')[1]
+        Get-CustomServer
+        $hostname = $SELECTED_HOST.Split(':')[0]
+        $user = $SELECTED_HOST.Split(':')[1]
     }
     else {
         # Parse predefined server details
-        $hostname = $hostSelection.Split(':')[0]
-        $user = $hostSelection.Split(':')[1]
+        $hostname = $SELECTED_HOST.Split(':')[0]
+        $user = $SELECTED_HOST.Split(':')[1]
     }
     
     Write-Status "Selected: $hostname (user: $user)"
