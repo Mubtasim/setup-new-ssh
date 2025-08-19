@@ -80,9 +80,81 @@ backup_config() {
     fi
 }
 
+# Function to select host interactively
+select_host() {
+    echo -e "\n${YELLOW}Select the Git hosting service:${NC}"
+    echo -e "1) GitHub (github.com)"
+    echo -e "2) GitLab (gitlab.com)"
+    echo -e "3) Bitbucket (bitbucket.org)"
+    echo -e "4) SourceForge (git.code.sf.net)"
+    echo -e "5) Gitea (gitea.com)"
+    echo -e "6) Gogs (gogs.io)"
+    echo -e "7) Other server (custom)"
+    
+    while true; do
+        read -p "Enter choice (1-7): " choice
+        case $choice in
+            1)
+                echo "github.com:git"
+                break
+                ;;
+            2)
+                echo "gitlab.com:git"
+                break
+                ;;
+            3)
+                echo "bitbucket.org:git"
+                break
+                ;;
+            4)
+                echo "git.code.sf.net:git"
+                break
+                ;;
+            5)
+                echo "gitea.com:git"
+                break
+                ;;
+            6)
+                echo "gogs.io:git"
+                break
+                ;;
+            7)
+                echo "custom"
+                break
+                ;;
+            *)
+                echo -e "${RED}Invalid choice. Please enter 1-7.${NC}"
+                ;;
+        esac
+    done
+}
+
+# Function to get custom server details
+get_custom_server() {
+    echo -e "\n${YELLOW}Enter custom server details:${NC}"
+    
+    # Get hostname
+    while true; do
+        read -p "Enter hostname (e.g., my-server.com): " hostname
+        if [[ -n "$hostname" ]]; then
+            break
+        else
+            echo -e "${RED}Hostname cannot be empty.${NC}"
+        fi
+    done
+    
+    # Get username (with default)
+    read -p "Enter SSH user (default: git): " user
+    user=${user:-git}
+    
+    echo "$hostname:$user"
+}
+
 # Function to add SSH config entry
 add_ssh_config() {
     local account_name=$1
+    local hostname=$2
+    local user=$3
     local config_file="$HOME/.ssh/config"
     
     # Create config file if it doesn't exist
@@ -91,21 +163,13 @@ add_ssh_config() {
         chmod 600 "$config_file"
     fi
     
-    # Determine hostname based on account name
-    local hostname="github.com"
-    if [[ $account_name == *"gitlab"* ]]; then
-        hostname="gitlab.com"
-    elif [[ $account_name == *"bitbucket"* ]]; then
-        hostname="bitbucket.org"
-    fi
-    
     # Add config entry
     print_status "Adding SSH config entry for $account_name..."
     cat >> "$config_file" << EOF
 
 Host $account_name
     HostName $hostname
-    User git
+    User $user
     IdentityFile ~/.ssh/id_rsa_$account_name
     IdentitiesOnly yes
 EOF
@@ -270,8 +334,26 @@ main() {
     chmod 600 "$key_file"
     chmod 644 "$key_file.pub"
     
+    # Select host interactively
+    print_status "Selecting Git hosting service..."
+    host_selection=$(select_host)
+    
+    # Parse host selection
+    if [[ "$host_selection" == "custom" ]]; then
+        # Get custom server details
+        server_details=$(get_custom_server)
+        hostname=$(echo "$server_details" | cut -d: -f1)
+        user=$(echo "$server_details" | cut -d: -f2)
+    else
+        # Parse predefined server details
+        hostname=$(echo "$host_selection" | cut -d: -f1)
+        user=$(echo "$host_selection" | cut -d: -f2)
+    fi
+    
+    print_status "Selected: $hostname (user: $user)"
+    
     # Add SSH config entry
-    add_ssh_config "$account_name"
+    add_ssh_config "$account_name" "$hostname" "$user"
     
     # Setup SSH agent
     setup_ssh_agent "$account_name"

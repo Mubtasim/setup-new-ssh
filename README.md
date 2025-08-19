@@ -30,11 +30,12 @@ The automation scripts help you:
 
 ## Features
 
-- Interactive account setup
-- Automatic SSH config management
-- SSH agent integration
-- Cross-platform compatibility
-- Input validation and error handling
+- **Interactive account setup**: Guided prompts for account information
+- **Interactive host selection**: Choose from popular Git hosting services or add custom servers
+- **Automatic SSH config management**: Creates and updates SSH configuration files
+- **SSH agent integration**: Starts agent and adds keys automatically
+- **Cross-platform compatibility**: Works on Linux, Windows, and macOS
+- **Input validation and error handling**: Validates inputs and provides helpful error messages
 
 ## Project Structure
 

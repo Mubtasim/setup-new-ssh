@@ -71,9 +71,58 @@ function Backup-SshConfig {
     }
 }
 
+# Function to select host interactively
+function Select-Host {
+    Write-Host ""
+    Write-Host "Select the Git hosting service:" -ForegroundColor Yellow
+    Write-Host "1) GitHub (github.com)"
+    Write-Host "2) GitLab (gitlab.com)"
+    Write-Host "3) Bitbucket (bitbucket.org)"
+    Write-Host "4) SourceForge (git.code.sf.net)"
+    Write-Host "5) Gitea (gitea.com)"
+    Write-Host "6) Gogs (gogs.io)"
+    Write-Host "7) Other server (custom)"
+    
+    do {
+        $choice = Read-Host "Enter choice (1-7)"
+        switch ($choice) {
+            "1" { return "github.com:git" }
+            "2" { return "gitlab.com:git" }
+            "3" { return "bitbucket.org:git" }
+            "4" { return "git.code.sf.net:git" }
+            "5" { return "gitea.com:git" }
+            "6" { return "gogs.io:git" }
+            "7" { return "custom" }
+            default { Write-Host "Invalid choice. Please enter 1-7." -ForegroundColor Red }
+        }
+    } while ($choice -notmatch '^[1-7]$')
+}
+
+# Function to get custom server details
+function Get-CustomServer {
+    Write-Host ""
+    Write-Host "Enter custom server details:" -ForegroundColor Yellow
+    
+    # Get hostname
+    do {
+        $hostname = Read-Host "Enter hostname (e.g., my-server.com)"
+        if ([string]::IsNullOrWhiteSpace($hostname)) {
+            Write-Host "Hostname cannot be empty." -ForegroundColor Red
+        }
+    } while ([string]::IsNullOrWhiteSpace($hostname))
+    
+    # Get username (with default)
+    $user = Read-Host "Enter SSH user (default: git)"
+    if ([string]::IsNullOrWhiteSpace($user)) {
+        $user = "git"
+    }
+    
+    return "$hostname`:$user"
+}
+
 # Function to add SSH config entry
 function Add-SshConfigEntry {
-    param([string]$AccountName)
+    param([string]$AccountName, [string]$Hostname, [string]$User)
     
     $configFile = "$env:USERPROFILE\.ssh\config"
     
@@ -82,22 +131,13 @@ function Add-SshConfigEntry {
         New-Item -ItemType File -Path $configFile -Force | Out-Null
     }
     
-    # Determine hostname based on account name
-    $hostname = "github.com"
-    if ($AccountName -like "*gitlab*") {
-        $hostname = "gitlab.com"
-    }
-    elseif ($AccountName -like "*bitbucket*") {
-        $hostname = "bitbucket.org"
-    }
-    
     # Add config entry
     Write-Status "Adding SSH config entry for $AccountName..."
     $configEntry = @"
 
 Host $AccountName
-    HostName $hostname
-    User git
+    HostName $Hostname
+    User $User
     IdentityFile ~/.ssh/id_rsa_$AccountName
     IdentitiesOnly yes
 "@
@@ -262,8 +302,27 @@ function Main {
         exit 1
     }
     
+    # Select host interactively
+    Write-Status "Selecting Git hosting service..."
+    $hostSelection = Select-Host
+    
+    # Parse host selection
+    if ($hostSelection -eq "custom") {
+        # Get custom server details
+        $serverDetails = Get-CustomServer
+        $hostname = $serverDetails.Split(':')[0]
+        $user = $serverDetails.Split(':')[1]
+    }
+    else {
+        # Parse predefined server details
+        $hostname = $hostSelection.Split(':')[0]
+        $user = $hostSelection.Split(':')[1]
+    }
+    
+    Write-Status "Selected: $hostname (user: $user)"
+    
     # Add SSH config entry
-    Add-SshConfigEntry $accountName
+    Add-SshConfigEntry $accountName $hostname $user
     
     # Setup SSH agent
     Start-SshAgent $accountName
