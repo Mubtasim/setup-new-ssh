@@ -159,6 +159,72 @@ ssh -T gitlab-company
 ssh -T bitbucket-project
 ```
 
+## Practical Usage Examples
+
+### Git Operations with SSH Aliases
+
+**Clone repositories using aliases:**
+```bash
+# Instead of: git clone git@github.com:username/repo.git
+git clone git@github-personal:username/repo.git
+
+# Instead of: git clone git@gitlab.com:company/project.git
+git clone git@gitlab-company:company/project.git
+```
+
+**Add remote repositories:**
+```bash
+# Add GitHub personal remote
+git remote add origin git@github-personal:username/repo.git
+
+# Add GitLab work remote
+git remote add work git@gitlab-company:company/project.git
+```
+
+**Push to different accounts:**
+```bash
+# Push to personal GitHub (uses github-personal key automatically)
+git push origin main
+
+# Push to work GitLab (uses gitlab-company key automatically)
+git push work main
+```
+
+### Complete Workflow Example
+
+```bash
+# 1. Set up SSH keys for different accounts
+./setup-ssh.sh  # Creates github-personal
+./setup-ssh.sh  # Creates gitlab-work
+
+# 2. Clone repositories
+git clone git@github-personal:username/personal-project.git
+git clone git@gitlab-company:company/work-project.git
+
+# 3. Work on personal project
+cd personal-project
+git remote -v  # Shows: origin git@github-personal:username/personal-project.git
+git push origin main  # Uses github-personal key automatically
+
+# 4. Work on work project
+cd ../work-project
+git remote -v  # Shows: origin git@gitlab-company:company/work-project.git
+git push origin main  # Uses gitlab-company key automatically
+```
+
+### Verifying Key Usage
+
+```bash
+# Check which keys are loaded in SSH agent
+ssh-add -l
+
+# Test with verbose SSH to see key selection
+ssh -vT github-personal
+
+# Test specific key directly
+ssh -i ~/.ssh/id_rsa_github-personal -T git@github.com
+```
+
 ## macOS-Specific Features
 
 ### Clipboard Integration
