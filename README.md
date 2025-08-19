@@ -32,6 +32,7 @@ The automation scripts help you:
 
 - **Interactive account setup**: Guided prompts for account information
 - **Interactive host selection**: Choose from popular SSH servers or add custom servers
+- **SSH key type selection**: Choose between RSA 4096-bit and Ed25519 keys
 - **Automatic SSH config management**: Creates and updates SSH configuration files
 - **SSH agent integration**: Starts agent and adds keys automatically
 - **Cross-platform compatibility**: Works on Linux, Windows, and macOS

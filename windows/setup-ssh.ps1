@@ -120,9 +120,26 @@ function Get-CustomServer {
     return "$hostname`:$user"
 }
 
+# Function to select key type
+function Select-KeyType {
+    Write-Host ""
+    Write-Host "Select SSH key type:" -ForegroundColor Yellow
+    Write-Host "1) RSA 4096-bit (maximum compatibility)"
+    Write-Host "2) Ed25519 (modern, faster, smaller)"
+    
+    do {
+        $choice = Read-Host "Enter choice (1-2)"
+        switch ($choice) {
+            "1" { return "rsa:4096" }
+            "2" { return "ed25519" }
+            default { Write-Host "Invalid choice. Please enter 1 or 2." -ForegroundColor Red }
+        }
+    } while ($choice -notmatch '^[1-2]$')
+}
+
 # Function to add SSH config entry
 function Add-SshConfigEntry {
-    param([string]$AccountName, [string]$Hostname, [string]$User)
+    param([string]$AccountName, [string]$Hostname, [string]$User, [string]$KeyType)
     
     $configFile = "$env:USERPROFILE\.ssh\config"
     
@@ -131,6 +148,9 @@ function Add-SshConfigEntry {
         New-Item -ItemType File -Path $configFile -Force | Out-Null
     }
     
+    # Determine identity file based on key type
+    $identityFile = if ($KeyType -eq "rsa") { "~/.ssh/id_rsa_$AccountName" } else { "~/.ssh/id_ed25519_$AccountName" }
+    
     # Add config entry
     Write-Status "Adding SSH config entry for $AccountName..."
     $configEntry = @"
@@ -138,7 +158,7 @@ function Add-SshConfigEntry {
 Host $AccountName
     HostName $Hostname
     User $User
-    IdentityFile ~/.ssh/id_rsa_$AccountName
+    IdentityFile $identityFile
     IdentitiesOnly yes
 "@
     
@@ -148,7 +168,7 @@ Host $AccountName
 
 # Function to start SSH agent and add key
 function Start-SshAgent {
-    param([string]$AccountName)
+    param([string]$AccountName, [string]$KeyType)
     
     Write-Status "Setting up SSH agent..."
     
@@ -160,8 +180,9 @@ function Start-SshAgent {
         Start-Sleep -Seconds 2
     }
     
-    # Add key to SSH agent
-    $keyFile = "$env:USERPROFILE\.ssh\id_rsa_$AccountName"
+    # Determine key file based on key type
+    $keyFile = if ($KeyType -eq "rsa") { "$env:USERPROFILE\.ssh\id_rsa_$AccountName" } else { "$env:USERPROFILE\.ssh\id_ed25519_$AccountName" }
+    
     Write-Status "Adding SSH key to agent..."
     
     try {
@@ -176,9 +197,10 @@ function Start-SshAgent {
 
 # Function to display public key
 function Show-PublicKey {
-    param([string]$AccountName)
+    param([string]$AccountName, [string]$KeyType)
     
-    $pubKeyFile = "$env:USERPROFILE\.ssh\id_rsa_$AccountName.pub"
+    # Determine public key file based on key type
+    $pubKeyFile = if ($KeyType -eq "rsa") { "$env:USERPROFILE\.ssh\id_rsa_$AccountName.pub" } else { "$env:USERPROFILE\.ssh\id_ed25519_$AccountName.pub" }
     
     if (Test-Path $pubKeyFile) {
         Write-Host ""
@@ -290,12 +312,34 @@ function Main {
     # Backup existing config
     Backup-SshConfig
     
+    # Select key type
+    Write-Status "Selecting SSH key type..."
+    $keySelection = Select-KeyType
+    
+    # Parse key selection
+    if ($keySelection -eq "rsa:4096") {
+        $keyType = "rsa"
+        $keyBits = "4096"
+        $keyFile = "$env:USERPROFILE\.ssh\id_rsa_$accountName"
+    }
+    else {
+        $keyType = "ed25519"
+        $keyBits = ""
+        $keyFile = "$env:USERPROFILE\.ssh\id_ed25519_$accountName"
+    }
+    
+    Write-Status "Selected: $keyType $keyBits"
+    
     # Generate SSH key
-    $keyFile = "$env:USERPROFILE\.ssh\id_rsa_$accountName"
     Write-Status "Generating SSH key for $accountName..."
     
     try {
-        ssh-keygen -t rsa -b 4096 -C $email -f $keyFile -N '""'
+        if ($keyBits) {
+            ssh-keygen -t $keyType -b $keyBits -C $email -f $keyFile -N '""'
+        }
+        else {
+            ssh-keygen -t $keyType -C $email -f $keyFile -N '""'
+        }
     }
     catch {
         Write-Error "Failed to generate SSH key: $_"
@@ -322,13 +366,13 @@ function Main {
     Write-Status "Selected: $hostname (user: $user)"
     
     # Add SSH config entry
-    Add-SshConfigEntry $accountName $hostname $user
+    Add-SshConfigEntry $accountName $hostname $user $keyType
     
     # Setup SSH agent
-    Start-SshAgent $accountName
+    Start-SshAgent $accountName $keyType
     
     # Display public key
-    Show-PublicKey $accountName
+    Show-PublicKey $accountName $keyType
 }
 
 # Run main function

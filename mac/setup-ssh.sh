@@ -150,17 +150,50 @@ get_custom_server() {
     echo "$hostname:$user"
 }
 
+# Function to select key type
+select_key_type() {
+    echo -e "\n${YELLOW}Select SSH key type:${NC}"
+    echo -e "1) RSA 4096-bit (maximum compatibility)"
+    echo -e "2) Ed25519 (modern, faster, smaller)"
+    
+    while true; do
+        read -p "Enter choice (1-2): " choice
+        case $choice in
+            1)
+                echo "rsa:4096"
+                break
+                ;;
+            2)
+                echo "ed25519"
+                break
+                ;;
+            *)
+                echo -e "${RED}Invalid choice. Please enter 1 or 2.${NC}"
+                ;;
+        esac
+    done
+}
+
 # Function to add SSH config entry
 add_ssh_config() {
     local account_name=$1
     local hostname=$2
     local user=$3
+    local key_type=$4
     local config_file="$HOME/.ssh/config"
     
     # Create config file if it doesn't exist
     if [[ ! -f "$config_file" ]]; then
         touch "$config_file"
         chmod 600 "$config_file"
+    fi
+    
+    # Determine identity file based on key type
+    local identity_file
+    if [[ "$key_type" == "rsa" ]]; then
+        identity_file="~/.ssh/id_rsa_$account_name"
+    else
+        identity_file="~/.ssh/id_ed25519_$account_name"
     fi
     
     # Add config entry
@@ -170,7 +203,7 @@ add_ssh_config() {
 Host $account_name
     HostName $hostname
     User $user
-    IdentityFile ~/.ssh/id_rsa_$account_name
+    IdentityFile $identity_file
     IdentitiesOnly yes
 EOF
     
@@ -180,7 +213,15 @@ EOF
 # Function to start SSH agent and add key (macOS specific)
 setup_ssh_agent() {
     local account_name=$1
-    local key_file="$HOME/.ssh/id_rsa_$account_name"
+    local key_type=$2
+    
+    # Determine key file based on key type
+    local key_file
+    if [[ "$key_type" == "rsa" ]]; then
+        key_file="$HOME/.ssh/id_rsa_$account_name"
+    else
+        key_file="$HOME/.ssh/id_ed25519_$account_name"
+    fi
     
     print_status "Setting up SSH agent..."
     
@@ -216,7 +257,15 @@ setup_ssh_agent() {
 # Function to display public key
 display_public_key() {
     local account_name=$1
-    local pub_key_file="$HOME/.ssh/id_rsa_$account_name.pub"
+    local key_type=$2
+    
+    # Determine public key file based on key type
+    local pub_key_file
+    if [[ "$key_type" == "rsa" ]]; then
+        pub_key_file="$HOME/.ssh/id_rsa_$account_name.pub"
+    else
+        pub_key_file="$HOME/.ssh/id_ed25519_$account_name.pub"
+    fi
     
     if [[ -f "$pub_key_file" ]]; then
         echo -e "\n${BLUE}================================${NC}"
@@ -325,10 +374,30 @@ main() {
     # Backup existing config
     backup_config
     
+    # Select key type
+    print_status "Selecting SSH key type..."
+    key_selection=$(select_key_type)
+    
+    # Parse key selection
+    if [[ "$key_selection" == "rsa:4096" ]]; then
+        key_type="rsa"
+        key_bits="4096"
+        key_file="$HOME/.ssh/id_rsa_$account_name"
+    else
+        key_type="ed25519"
+        key_bits=""
+        key_file="$HOME/.ssh/id_ed25519_$account_name"
+    fi
+    
+    print_status "Selected: $key_type $key_bits"
+    
     # Generate SSH key
-    local key_file="$HOME/.ssh/id_rsa_$account_name"
     print_status "Generating SSH key for $account_name..."
-    ssh-keygen -t rsa -b 4096 -C "$email" -f "$key_file" -N ""
+    if [[ -n "$key_bits" ]]; then
+        ssh-keygen -t "$key_type" -b "$key_bits" -C "$email" -f "$key_file" -N ""
+    else
+        ssh-keygen -t "$key_type" -C "$email" -f "$key_file" -N ""
+    fi
     
     # Set proper permissions
     chmod 600 "$key_file"
@@ -353,13 +422,13 @@ main() {
     print_status "Selected: $hostname (user: $user)"
     
     # Add SSH config entry
-    add_ssh_config "$account_name" "$hostname" "$user"
+    add_ssh_config "$account_name" "$hostname" "$user" "$key_type"
     
     # Setup SSH agent
-    setup_ssh_agent "$account_name"
+    setup_ssh_agent "$account_name" "$key_type"
     
     # Display public key
-    display_public_key "$account_name"
+    display_public_key "$account_name" "$key_type"
 }
 
 # Run main function
