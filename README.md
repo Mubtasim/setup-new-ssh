@@ -23,6 +23,11 @@ The automation scripts help you:
 3. Run the script and follow the prompts
 4. After setup, run `./demo-usage.sh` to see usage examples
 
+## Learning Resources
+
+- **SSH-CONFIG-GUIDE.md**: Comprehensive guide explaining SSH configuration concepts, how SSH works, and the underlying technology used by the automation scripts
+- **demo-usage.sh**: Interactive demonstration of how to use SSH aliases after setup
+
 ## Features
 
 - Interactive account setup
@@ -39,6 +44,7 @@ setup-new-ssh/
 ├── windows/        # Windows automation scripts  
 ├── mac/           # macOS automation scripts
 ├── demo-usage.sh   # Usage demonstration script
+├── SSH-CONFIG-GUIDE.md  # SSH configuration concepts guide
 └── README.md      # This file
 ```
 
