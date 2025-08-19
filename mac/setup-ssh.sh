@@ -82,7 +82,7 @@ backup_config() {
 
 # Function to select host interactively
 select_host() {
-    echo -e "\n${YELLOW}Select the Git hosting service:${NC}"
+    echo -e "\n${YELLOW}Select the SSH server:${NC}"
     echo -e "1) GitHub (github.com)"
     echo -e "2) GitLab (gitlab.com)"
     echo -e "3) Bitbucket (bitbucket.org)"
@@ -335,7 +335,7 @@ main() {
     chmod 644 "$key_file.pub"
     
     # Select host interactively
-    print_status "Selecting Git hosting service..."
+    print_status "Selecting SSH server..."
     host_selection=$(select_host)
     
     # Parse host selection

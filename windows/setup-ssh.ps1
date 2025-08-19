@@ -74,7 +74,7 @@ function Backup-SshConfig {
 # Function to select host interactively
 function Select-Host {
     Write-Host ""
-    Write-Host "Select the Git hosting service:" -ForegroundColor Yellow
+    Write-Host "Select the SSH server:" -ForegroundColor Yellow
     Write-Host "1) GitHub (github.com)"
     Write-Host "2) GitLab (gitlab.com)"
     Write-Host "3) Bitbucket (bitbucket.org)"
@@ -303,7 +303,7 @@ function Main {
     }
     
     # Select host interactively
-    Write-Status "Selecting Git hosting service..."
+    Write-Status "Selecting SSH server..."
     $hostSelection = Select-Host
     
     # Parse host selection

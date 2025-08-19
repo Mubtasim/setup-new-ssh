@@ -28,7 +28,7 @@ echo -e "  5) Gitea (gitea.com)"
 echo -e "  6) Gogs (gogs.io)"
 echo -e "  7) Other server (custom)"
 echo -e ""
-echo -e "Select the appropriate service or choose 'Other server' for custom hosts."
+echo -e "Select the appropriate SSH server or choose 'Other server' for custom hosts."
 
 echo -e "\n${GREEN}2. Testing SSH Connections${NC}"
 echo -e "Test your SSH connections to verify keys are working:"
