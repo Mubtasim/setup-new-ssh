@@ -124,7 +124,7 @@ function Get-CustomServer {
 function Select-KeyType {
     Write-Host ""
     Write-Host "Select SSH key type:" -ForegroundColor Yellow
-    Write-Host "1) RSA 4096-bit (maximum compatibility)"
+    Write-Host "1) RSA 4096-bit (works almost everywhere)"
     Write-Host "2) Ed25519 (modern, faster, smaller)"
     
     do {

@@ -153,7 +153,7 @@ get_custom_server() {
 # Function to select key type
 select_key_type() {
     echo -e "\n${YELLOW}Select SSH key type:${NC}"
-    echo -e "1) RSA 4096-bit (maximum compatibility)"
+    echo -e "1) RSA 4096-bit (works almost everywhere)"
     echo -e "2) Ed25519 (modern, faster, smaller)"
     
     while true; do

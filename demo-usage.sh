@@ -32,7 +32,7 @@ echo -e "Select the appropriate SSH server or choose 'Other server' for custom h
 
 echo -e "\n${GREEN}2. SSH Key Type Selection${NC}"
 echo -e "You'll also be prompted to choose SSH key type:"
-echo -e "  1) RSA 4096-bit (maximum compatibility)"
+echo -e "  1) RSA 4096-bit (works almost everywhere)"
 echo -e "  2) Ed25519 (modern, faster, smaller)"
 echo -e ""
 echo -e "RSA is recommended for maximum compatibility, Ed25519 for modern systems."
