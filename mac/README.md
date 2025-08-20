@@ -49,10 +49,12 @@ Run the script:
 The script will:
 1. Prompt for an account name/alias
 2. Ask for the associated email
-3. Generate a new SSH key
-4. Configure SSH settings
-5. Display the public key for manual addition
-6. Offer to copy the public key to clipboard (macOS feature)
+3. Let you choose SSH key type (RSA 4096-bit or Ed25519)
+4. Let you select SSH server (GitHub, GitLab, etc. or custom)
+5. Generate a new SSH key
+6. Configure SSH settings
+7. Display the public key for manual addition
+8. Offer to copy the public key to clipboard (macOS feature)
 
 ### Example Session
 
@@ -74,6 +76,27 @@ github-personal
 Enter the email associated with this account:
 user@example.com
 
+[INFO] Selecting SSH key type...
+
+Select SSH key type:
+1) RSA 4096-bit (works almost everywhere)
+2) Ed25519 (modern, faster, smaller)
+Enter choice (1-2): 2
+
+[INFO] Selected: ed25519
+[INFO] Selecting SSH server...
+
+Select the SSH server:
+1) GitHub (github.com)
+2) GitLab (gitlab.com)
+3) Bitbucket (bitbucket.org)
+4) SourceForge (git.code.sf.net)
+5) Gitea (gitea.com)
+6) Gogs (gogs.io)
+7) Other server (custom)
+Enter choice (1-7): 1
+
+[INFO] Selected: github.com (user: git)
 [INFO] Creating SSH directory...
 [INFO] Backing up existing SSH config to /Users/user/.ssh/config.backup.20231201_143022
 [INFO] Generating SSH key for github-personal...
@@ -89,7 +112,7 @@ user@example.com
 ================================
 Copy the following public key and add it to your account:
 
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC... user@example.com
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE8rmvW0PTSF1yJL4ekV0VfihoNSm5lLWYIMSc9hXAuS user@example.com
 
 ================================
 Setup complete!
@@ -107,10 +130,11 @@ y
 ## Features
 
 - **Interactive Setup**: Guided prompts for account information
+- **SSH Key Type Selection**: Choose between RSA 4096-bit and Ed25519 keys
+- **Interactive Host Selection**: Choose from popular SSH servers or add custom servers
 - **Input Validation**: Validates email format and account names
 - **Automatic Backup**: Backs up existing SSH config before modifications
 - **SSH Agent Integration**: Automatically starts and configures SSH agent
-- **Smart Host Detection**: Automatically detects GitHub/GitLab/Bitbucket based on account name
 - **Permission Management**: Sets proper file permissions for security
 - **Error Handling**: Graceful error handling with informative messages
 - **macOS Integration**: Clipboard support for easy key copying
@@ -127,9 +151,17 @@ y
 
 ## Generated Files
 
-The script creates the following files:
+The script creates the following files based on your key type selection:
+
+**For RSA keys:**
 - `~/.ssh/id_rsa_[account-name]` - Private SSH key
 - `~/.ssh/id_rsa_[account-name].pub` - Public SSH key
+
+**For Ed25519 keys:**
+- `~/.ssh/id_ed25519_[account-name]` - Private SSH key
+- `~/.ssh/id_ed25519_[account-name].pub` - Public SSH key
+
+**Common:**
 - `~/.ssh/config` - SSH configuration file (updated)
 
 ## SSH Config Structure
