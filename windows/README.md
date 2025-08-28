@@ -38,11 +38,8 @@ If you encounter execution policy restrictions:
 # Check current policy
 Get-ExecutionPolicy
 
-# Set policy for current user (recommended)
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-# Or set policy for all users (requires admin)
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine
+# Set policy for current process (recommended)
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 ```
 
 ## Usage
