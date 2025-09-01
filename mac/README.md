@@ -1,7 +1,3 @@
-# macOS SSH Setup Automation
-
-> **⚠️ Testing Status**: This macOS script has not been fully tested yet. Linux and Windows versions have been tested and are working correctly. macOS testing will be completed soon and the script will be released with the same reliability as the other platforms.
-
 This directory contains the SSH setup automation script for macOS systems.
 
 ## Prerequisites
